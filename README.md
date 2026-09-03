@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./public/ai-news-aggregator-logo.png?v=2" alt="AI News Aggregator logo" width="160" />
+  <img src="./public/ai-news-aggregator-logo.webp" alt="AI News Aggregator logo" width="160" />
 </p>
 
 <h1 align="center">AI News Aggregator</h1>
@@ -12,8 +12,8 @@
   <a href="https://ainews.leonemarcos.com">
     <img src="https://img.shields.io/badge/Demo-Live-brightgreen?style=flat-square" alt="Live Demo" />
   </a>
-  <a href="https://github.com/LeoneMarcos/Brievox/actions/workflows/ci.yml">
-    <img src="https://github.com/LeoneMarcos/Brievox/actions/workflows/ci.yml/badge.svg" alt="CI" />
+  <a href="https://github.com/LeoneMarcos/AI-News-Aggregator/actions/workflows/ci.yml">
+    <img src="https://github.com/LeoneMarcos/AI-News-Aggregator/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" />
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-Apache%202.0-green?style=flat-square" alt="Apache 2.0 License" />
@@ -21,12 +21,11 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/React-19-149eca?style=flat-square" alt="React 19" />
-  <img src="https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Vite-6-informational?style=flat-square" alt="Vite 6" />
-  <img src="https://img.shields.io/badge/Vitest-4-informational?style=flat-square" alt="Vitest 4" />
-  <img src="https://img.shields.io/badge/CI-GitHub%20Actions-2088ff?style=flat-square" alt="GitHub Actions" />
-  <img src="https://img.shields.io/badge/Deploy-Cloudflare-f38020?style=flat-square" alt="Cloudflare" />
+  <img src="https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react&logoColor=white" alt="React 19" />
+  <img src="https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Vite-6-646cff?style=flat-square&logo=vite&logoColor=white" alt="Vite 6" />
+  <img src="https://img.shields.io/badge/Vitest-4-6e9f18?style=flat-square&logo=vitest&logoColor=white" alt="Vitest 4" />
+  <img src="https://img.shields.io/badge/Deploy-Cloudflare-f38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare" />
 </p>
 
 <p align="center">
@@ -49,7 +48,7 @@ The app keeps source selection locally, supports filtering by publication, and u
 
 - **Curated sources** — Choose which AI publications appear in the feed.
 - **Readable feed** — Browse normalized article cards with source, time, summary, and link.
-- **Local preferences** — Keep the selected sources and feed cache in the browser.
+- **Local preferences** — Keep selected sources and feed cache in the browser.
 - **Static deployment** — Runs as a Vite-built frontend with no application server required.
 
 ---
@@ -59,6 +58,8 @@ The app keeps source selection locally, supports filtering by publication, and u
 The short showcase video covers source selection, the loaded news feed, and filtering by source.
 
 https://github.com/user-attachments/assets/4dfd7103-3ed0-4a76-9cd0-7a028ec64a1f
+
+---
 
 ## Features
 
@@ -76,11 +77,11 @@ Supported sources include TechCrunch, MarkTechPost, MIT Technology Review, Ventu
 | Area | Technologies |
 | --- | --- |
 | Frontend | React, TypeScript |
-| UI | lucide-react, Google Fonts |
+| UI | Lucide React, Google Fonts |
 | Data | RSS feeds, client-side XML parsing, CORS proxy fallbacks |
 | Build | Vite |
-| CI | GitHub Actions |
 | Testing | Vitest, jsdom |
+| CI | GitHub Actions |
 | Hosting | Cloudflare Pages |
 
 ## Architecture
@@ -104,8 +105,8 @@ Browser
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/LeoneMarcos/Brievox.git
-cd ai-news-aggregator
+git clone https://github.com/LeoneMarcos/AI-News-Aggregator.git
+cd AI-News-Aggregator
 ```
 
 ### 2. Install dependencies
@@ -130,14 +131,8 @@ npm run typecheck
 npm run build
 ```
 
-The Vitest suite covers feed parsing, proxy fallback behavior, cache handling, utility functions, preference migration, and the typed application modules. TypeScript validation runs with `npm run typecheck`.
-
-## Contributing
-
-Contributions, issues, and feature requests are welcome. Please open an issue before submitting a significant change.
+The Vitest suite covers feed parsing, proxy fallback behavior, cache handling, utility functions, preference migration, and the typed application modules.
 
 ## License
 
 This project is licensed under the **Apache License 2.0**. See [`LICENSE`](LICENSE) for details.
-
----

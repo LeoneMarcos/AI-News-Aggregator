@@ -12,3 +12,6 @@ dist/
 # Misc
 .DS_Store
 *.local
+
+# Showcase capture helper
+showcase-assets/capture_showcase.mjs

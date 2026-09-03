@@ -1,0 +1,20 @@
+# AI News Aggregator
+
+> AI News Aggregator is a static client-side news reader that collects AI articles from selected RSS sources and presents them in a focused, filterable feed.
+
+AI News Aggregator runs in the browser with React, TypeScript, and Vite. Source preferences and the feed cache are stored locally in the browser. RSS content is fetched client-side through public CORS proxy strategies; there is no application backend or database.
+
+## Site
+
+- [AI News Aggregator](https://ainews.leonemarcos.com/): Live application.
+- [Repository](https://github.com/LeoneMarcos/AI-News-Aggregator): Source code, documentation, tests, and deployment configuration.
+- [Showcase video](https://github.com/user-attachments/assets/4dfd7103-3ed0-4a76-9cd0-7a028ec64a1f): Product walkthrough.
+
+## Technology
+
+- [React](https://react.dev/): UI component library.
+- [TypeScript](https://www.typescriptlang.org/): Typed application source.
+- [Vite](https://vite.dev/): Development server and production build tool.
+- [Vitest](https://vitest.dev/): Test runner.
+- [GitHub Actions](https://github.com/LeoneMarcos/AI-News-Aggregator/actions): Automated validation workflow.
+- [Cloudflare Pages](https://pages.cloudflare.com/): Static hosting.

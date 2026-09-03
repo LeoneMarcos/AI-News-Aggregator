@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Language" content="en-US" />
+    <meta name="theme-color" content="#d2dfdb" />
+    <title>Brievox — AI News Aggregator</title>
+    <link rel="icon" type="image/png" href="/brievox-logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="brand-lockup"><img src="/brievox-logo.png" alt="Brievox logo" class="brand-logo" /><div><h1>Brievox</h1><span>AI intelligence, curated daily</span></div></div>
+        <button id="settings-btn" aria-label="Open settings" title="Configure sources" class="icon-button"><i data-lucide="settings" aria-hidden="true"></i></button>
+      </header>
+      <div class="app-layout">
+        <aside class="sidebar"><div class="sidebar-label">Your sources</div><nav id="sidebar-nav" aria-label="News sources"></nav></aside>
+        <main class="content-area"><div class="content-heading"><div><p class="eyebrow">LATEST SIGNALS</p><h2>AI news worth your attention.</h2></div><span class="live-indicator"><span></span> Live feed</span></div><div id="news-grid" class="news-grid"></div></main>
+      </div>
+    </div>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

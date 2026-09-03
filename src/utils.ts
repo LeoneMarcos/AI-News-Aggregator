@@ -1,15 +1,8 @@
-/**
- * Brievox — Utility Functions
- */
-
-/**
- * Format a date string to a relative time (e.g. "2h ago", "5 min ago")
- */
-export function timeAgo(dateStr) {
+/** Format a date string to a relative time. */
+export function timeAgo(dateStr: string): string {
   const now = Date.now();
   const date = new Date(dateStr).getTime();
   const diff = now - date;
-
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
@@ -21,40 +14,32 @@ export function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-/**
- * Strip HTML tags from a string
- */
-export function stripHtml(html) {
+/** Strip HTML tags from a string. */
+export function stripHtml(html: string | null | undefined): string {
   if (!html) return '';
   const tmp = document.createElement('div');
   tmp.innerHTML = html;
   return tmp.textContent || tmp.innerText || '';
 }
 
-/**
- * Escape HTML to prevent XSS
- */
-export function escapeHtml(str) {
+/** Escape text before inserting it into an HTML context. */
+export function escapeHtml(str: string | null | undefined): string {
   if (!str) return '';
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
 }
 
-/**
- * Decode HTML entities like &#8217; back to real characters
- */
-export function decodeHtmlEntities(str) {
+/** Decode HTML entities like &#8217; back to real characters. */
+export function decodeHtmlEntities(str: string | null | undefined): string {
   if (!str) return '';
-  const doc = new DOMParser().parseFromString(str, "text/html");
-  return doc.documentElement.textContent;
+  const doc = new DOMParser().parseFromString(str, 'text/html');
+  return doc.documentElement.textContent || '';
 }
 
-/**
- * Check if an article was published in the last N hours
- */
-export function isWithinHours(dateStr, hours = 24) {
+/** Check if an article was published in the last N hours. */
+export function isWithinHours(dateStr: string, hours = 24): boolean {
   const date = new Date(dateStr).getTime();
-  const cutoff = Date.now() - (hours * 3600000);
+  const cutoff = Date.now() - hours * 3600000;
   return date >= cutoff;
 }

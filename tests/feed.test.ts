@@ -1,0 +1,257 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { fetchAllFeeds, SOURCES } from '../src/feed';
+
+// Mock localStorage
+const localStorageMock = (() => {
+  let store = {};
+  return {
+    getItem: vi.fn(key => store[key] || null),
+    setItem: vi.fn((key, value) => { store[key] = value.toString(); }),
+    removeItem: vi.fn(key => { delete store[key]; }),
+    clear: vi.fn(() => { store = {}; })
+  };
+})();
+global.localStorage = localStorageMock;
+
+// Mock fetch
+global.fetch = vi.fn();
+
+const RSS_XML = `
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <item>
+      <title>RSS Title</title>
+      <link>https://rss.com</link>
+      <description>RSS Desc</description>
+      <pubDate>${new Date().toISOString()}</pubDate>
+      <dc:creator>RSS Author</dc:creator>
+    </item>
+  </channel>
+</rss>`;
+
+const ATOM_XML = `
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <entry>
+    <title>Atom Title</title>
+    <link href="https://atom.com"/>
+    <summary>Atom Summary</summary>
+    <updated>${new Date().toISOString()}</updated>
+    <author><name>Atom Author</name></author>
+  </entry>
+</feed>`;
+
+describe('feed.js', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
+
+  it('should parse RSS 2.0 correctly', async () => {
+    // Mock for all 3 proxies just in case, but first one should work
+    fetch.mockResolvedValue({ ok: true, text: async () => RSS_XML });
+    
+    const originalSources = [...SOURCES];
+    SOURCES.length = 0;
+    SOURCES.push({ id: 'rss', name: 'RSS', feedUrl: 'https://rss.com/feed' });
+
+    const articles = await fetchAllFeeds({ forceRefresh: true });
+    expect(articles.length).toBeGreaterThan(0);
+    expect(articles[0].title).toBe('RSS Title');
+    
+    SOURCES.length = 0;
+    SOURCES.push(...originalSources);
+  });
+
+  it('should parse Atom correctly', async () => {
+    fetch.mockResolvedValue({ ok: true, text: async () => ATOM_XML });
+    
+    const originalSources = [...SOURCES];
+    SOURCES.length = 0;
+    SOURCES.push({ id: 'atom', name: 'Atom', feedUrl: 'https://atom.com/feed' });
+
+    const articles = await fetchAllFeeds({ forceRefresh: true });
+    expect(articles.length).toBeGreaterThan(0);
+    expect(articles[0].title).toBe('Atom Title');
+    
+    SOURCES.length = 0;
+    SOURCES.push(...originalSources);
+  });
+
+  it('should rotate proxies if the first ones fail', async () => {
+    // Proxy 1 fails, Proxy 2 fails, Proxy 3 (rss2json) succeeds
+    fetch.mockResolvedValueOnce({ ok: false }); 
+    fetch.mockResolvedValueOnce({ ok: false });
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        status: 'ok',
+        items: [{ title: 'Proxy Success', link: 'https://proxy.com', pubDate: new Date().toISOString() }]
+      })
+    });
+
+    const originalSources = [...SOURCES];
+    SOURCES.length = 0;
+    SOURCES.push({ id: 'test', name: 'Test', feedUrl: 'https://test.com/rss' });
+
+    const articles = await fetchAllFeeds({ forceRefresh: true });
+    expect(articles.length).toBeGreaterThan(0);
+    expect(articles[0].title).toBe('Proxy Success');
+    
+    SOURCES.length = 0;
+    SOURCES.push(...originalSources);
+  });
+
+  it('should handle invalid XML gracefully', async () => {
+    fetch.mockResolvedValue({ ok: true, text: async () => '<invalid' });
+    const articles = await fetchAllFeeds({ forceRefresh: true });
+    expect(articles.length).toBe(0);
+  });
+
+  it('should load from cache if available', async () => {
+    const cachedData = {
+      timestamp: Date.now(),
+      articles: [{ title: 'Cached', pubDate: new Date().toISOString() }]
+    };
+    localStorage.getItem.mockReturnValue(JSON.stringify(cachedData));
+    const articles = await fetchAllFeeds();
+    expect(articles[0].title).toBe('Cached');
+  });
+
+  it('should ignore expired cache', async () => {
+    const expiredData = { timestamp: 0, articles: [] };
+    localStorage.getItem.mockReturnValue(JSON.stringify(expiredData));
+    fetch.mockResolvedValue({ ok: false });
+    await fetchAllFeeds();
+    // Cache key now includes sorted source IDs
+    const expectedKey = `ai_news_aggregator_feed_cache_${SOURCES.map(s => s.id).sort().join(',')}`;
+    expect(localStorage.removeItem).toHaveBeenCalledWith(expectedKey);
+  });
+
+  it('should fallback to latest 30 if none in window', async () => {
+    const cachedData = {
+      timestamp: Date.now(),
+      articles: Array.from({ length: 50 }, (_, i) => ({
+        pubDate: '2000-01-01',
+        title: `Old ${i}`,
+        link: `${i}`
+      }))
+    };
+    localStorage.getItem.mockReturnValue(JSON.stringify(cachedData));
+    const articles = await fetchAllFeeds({ hoursLimit: 1 });
+    expect(articles.length).toBe(30);
+  });
+
+  it('should handle corrupt cache JSON gracefully', async () => {
+    // Covers loadCache catch branch (line 219)
+    localStorage.getItem.mockReturnValue('{ invalid json }}}');
+    fetch.mockResolvedValue({ ok: true, text: async () => RSS_XML });
+
+    const originalSources = [...SOURCES];
+    SOURCES.length = 0;
+    SOURCES.push({ id: 'rss', name: 'RSS', feedUrl: 'https://rss.com/feed' });
+
+    const articles = await fetchAllFeeds({ forceRefresh: false });
+    expect(articles.length).toBeGreaterThan(0); // fell through to fetch
+
+    SOURCES.length = 0;
+    SOURCES.push(...originalSources);
+  });
+
+  it('should fetch only selectedSourceIds when provided', async () => {
+    // Covers selectedSourceIds branch (line 244)
+    fetch.mockResolvedValue({ ok: true, text: async () => RSS_XML });
+
+    const originalSources = [...SOURCES];
+    SOURCES.length = 0;
+    SOURCES.push(
+      { id: 'src-a', name: 'A', feedUrl: 'https://a.com/feed' },
+      { id: 'src-b', name: 'B', feedUrl: 'https://b.com/feed' },
+    );
+
+    const articles = await fetchAllFeeds({ forceRefresh: true, selectedSourceIds: ['src-a'] });
+    expect(articles.length).toBeGreaterThan(0);
+    articles.forEach(a => expect(a.sourceId).toBe('src-a'));
+
+    SOURCES.length = 0;
+    SOURCES.push(...originalSources);
+  });
+
+  it('should report progress once for each loaded source', async () => {
+    fetch.mockResolvedValue({ ok: true, text: async () => RSS_XML });
+    const originalSources = [...SOURCES];
+    SOURCES.length = 0;
+    SOURCES.push(
+      { id: 'src-a', name: 'A', feedUrl: 'https://a.com/feed' },
+      { id: 'src-b', name: 'B', feedUrl: 'https://b.com/feed' },
+      { id: 'src-c', name: 'C', feedUrl: 'https://c.com/feed' },
+    );
+
+    const progress = [];
+    try {
+      await fetchAllFeeds({ forceRefresh: true, onProgress: (event) => progress.push(event) });
+      expect(progress).toHaveLength(3);
+      expect(progress.map((event) => event.completed)).toEqual([1, 2, 3]);
+      expect(progress.every((event) => event.total === 3 && event.status === 'loaded')).toBe(true);
+      expect(progress.every((event) => event.sourceId)).toBe(true);
+    } finally {
+      SOURCES.length = 0;
+      SOURCES.push(...originalSources);
+    }
+  });
+
+  it('should complete progress when a source fails', async () => {
+    fetch.mockRejectedValue(new Error('Feed unavailable'));
+    const originalSources = [...SOURCES];
+    SOURCES.length = 0;
+    SOURCES.push({ id: 'failed', name: 'Unavailable', feedUrl: 'https://failed.com/feed' });
+
+    const progress = [];
+    try {
+      await fetchAllFeeds({ forceRefresh: true, onProgress: (event) => progress.push(event) });
+      expect(progress).toEqual([{ completed: 1, total: 1, sourceId: 'failed', status: 'failed' }]);
+    } finally {
+      SOURCES.length = 0;
+      SOURCES.push(...originalSources);
+    }
+  });
+
+  it('should report cached sources as completed', async () => {
+    const originalSources = [...SOURCES];
+    SOURCES.length = 0;
+    SOURCES.push(
+      { id: 'src-a', name: 'A', feedUrl: 'https://a.com/feed' },
+      { id: 'src-b', name: 'B', feedUrl: 'https://b.com/feed' },
+    );
+    localStorage.getItem.mockReturnValue(JSON.stringify({
+      timestamp: Date.now(),
+      articles: [{ title: 'Cached', pubDate: new Date().toISOString() }],
+    }));
+    const progress = [];
+
+    try {
+      await fetchAllFeeds({ selectedSourceIds: ['src-a', 'src-b'], onProgress: (event) => progress.push(event) });
+
+      expect(progress).toEqual([{ completed: 2, total: 2, sourceId: null, status: 'cached' }]);
+      expect(fetch).not.toHaveBeenCalled();
+    } finally {
+      SOURCES.length = 0;
+      SOURCES.push(...originalSources);
+    }
+  });
+
+  it('should handle saveCache storage error gracefully', async () => {
+    // Covers saveCache catch branch (line ~233)
+    localStorage.setItem.mockImplementationOnce(() => { throw new Error('Storage full'); });
+    fetch.mockResolvedValue({ ok: true, text: async () => RSS_XML });
+
+    const originalSources = [...SOURCES];
+    SOURCES.length = 0;
+    SOURCES.push({ id: 'rss', name: 'RSS', feedUrl: 'https://rss.com/feed' });
+
+    // Should not throw even when storage fails
+    await expect(fetchAllFeeds({ forceRefresh: true })).resolves.toBeDefined();
+
+    SOURCES.length = 0;
+    SOURCES.push(...originalSources);
+  });
+});

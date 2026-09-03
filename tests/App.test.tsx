@@ -17,4 +17,14 @@ describe('App', () => {
     expect(screen.getByText('Choose your news sources.')).toBeTruthy();
     expect(screen.getByRole('dialog', { name: 'AI News Aggregator setup' })).toBeTruthy();
   });
+
+  it('loads saved preferences without reinitializing the feed effect', async () => {
+    localStorage.setItem('ai_news_aggregator_user_prefs', JSON.stringify({ sources: ['techcrunch'] }));
+    localStorage.setItem('ai_news_aggregator_feed_cache_techcrunch', JSON.stringify({ timestamp: Date.now(), articles: [] }));
+
+    render(<App />);
+
+    expect(await screen.findByText('No articles found.')).toBeTruthy();
+    expect(screen.queryByRole('dialog', { name: 'AI News Aggregator setup' })).toBeNull();
+  });
 });

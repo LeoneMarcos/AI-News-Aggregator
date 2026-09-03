@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, ExternalLink, Newspaper, RefreshCw, Settings, X } from 'lucide-react';
 import * as Sentry from '@sentry/browser';
 import { fetchAllFeeds, SOURCES } from './feed';
@@ -47,6 +47,7 @@ export default function App() {
   const [error, setError] = useState(false);
   const [setupOpen, setSetupOpen] = useState(false);
   const [setupPrefs, setSetupPrefs] = useState<Preferences | null>(null);
+  const didInitialize = useRef(false);
 
   const applyPrefs = useCallback((prefs: Preferences) => { setActiveSources(prefs.sources); setFilter('all'); }, []);
   const loadFeed = useCallback(async (forceRefresh = false, sources = activeSources) => {
@@ -55,7 +56,7 @@ export default function App() {
     try { setArticles(await fetchAllFeeds({ forceRefresh, selectedSourceIds: sources, onProgress: setProgress })); } catch { setError(true); } finally { setLoading(false); }
   }, [activeSources]);
 
-  useEffect(() => { const prefs = loadPrefs(); if (!prefs) { setActiveSources((current) => current.length ? [] : current); setSetupPrefs(null); setSetupOpen(true); } else { applyPrefs(prefs); void loadFeed(false, prefs.sources); } }, [applyPrefs, loadFeed]);
+  useEffect(() => { if (didInitialize.current) return; didInitialize.current = true; const prefs = loadPrefs(); if (!prefs) { setActiveSources((current) => current.length ? [] : current); setSetupPrefs(null); setSetupOpen(true); } else { applyPrefs(prefs); void loadFeed(false, prefs.sources); } }, [applyPrefs, loadFeed]);
 
   const filteredArticles = useMemo(() => filter === 'all' ? articles : articles.filter((article) => article.sourceId === filter), [articles, filter]);
   const openSetup = () => { setSetupPrefs(loadPrefs()); setSetupOpen(true); };

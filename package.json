@@ -25,7 +25,6 @@
     "vitest": "^4.1.0"
   },
   "dependencies": {
-    "@sentry/browser": "^10.43.0",
     "lucide-react": "^1.39.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"

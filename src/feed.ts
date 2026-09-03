@@ -17,6 +17,7 @@ const CORS_PROXIES: Array<(url: string) => string> = [
 const CACHE_KEY = 'ai_news_aggregator_feed_cache';
 const LEGACY_CACHE_KEY = 'neural_feed_cache';
 const CACHE_TTL = 15 * 60 * 1000;
+const PROXY_TIMEOUT = 5000;
 
 interface RawFeedItem {
   title?: string;
@@ -106,22 +107,34 @@ function parseRssXml(xmlTextValue: string, source: FeedSource): Article[] {
   });
 }
 
-async function fetchSingleFeed(source: FeedSource): Promise<FeedResult> {
-  for (const makeProxyUrl of CORS_PROXIES) {
-    const proxyUrl = makeProxyUrl(source.feedUrl);
-    try {
-      const response = await fetch(proxyUrl);
-      if (!response.ok) continue;
-      if (proxyUrl.includes('rss2json.com')) {
-        const data = await response.json() as Rss2JsonResponse;
-        if (data.status !== 'ok' || !data.items?.length) continue;
-        return { items: data.items.map((item) => normalizeFeedItem(item, source)), status: 'loaded' };
-      }
-      const items = parseRssXml(await response.text(), source);
-      if (items.length > 0) return { items, status: 'loaded' };
-    } catch {
-      // Try the next proxy.
+async function fetchProxy(makeProxyUrl: (url: string) => string, source: FeedSource, controller: AbortController): Promise<Article[]> {
+  const proxyUrl = makeProxyUrl(source.feedUrl);
+  const timeoutId = window.setTimeout(() => controller.abort(), PROXY_TIMEOUT);
+  try {
+    const response = await fetch(proxyUrl, { signal: controller.signal });
+    if (!response.ok) throw new Error(`Proxy returned ${response.status}`);
+    if (proxyUrl.includes('rss2json.com')) {
+      const data = await response.json() as Rss2JsonResponse;
+      if (data.status !== 'ok' || !data.items?.length) throw new Error('RSS JSON response was empty');
+      return data.items.map((item) => normalizeFeedItem(item, source));
     }
+    const items = parseRssXml(await response.text(), source);
+    if (items.length === 0) throw new Error('RSS XML response was empty');
+    return items;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
+async function fetchSingleFeed(source: FeedSource): Promise<FeedResult> {
+  const controllers = CORS_PROXIES.map(() => new AbortController());
+  try {
+    const items = await Promise.any(CORS_PROXIES.map((makeProxyUrl, index) => fetchProxy(makeProxyUrl, source, controllers[index])));
+    return { items, status: 'loaded' };
+  } catch {
+    // All proxy attempts failed.
+  } finally {
+    controllers.forEach((controller) => controller.abort());
   }
   console.warn(`[AI News Aggregator] All proxies failed for ${source.name}`);
   return { items: [], status: 'failed' };
@@ -155,7 +168,7 @@ function filterByHours(articles: Article[], hours: number): Article[] {
   return filtered.length === 0 && articles.length > 0 ? articles.slice(0, 30) : filtered;
 }
 
-export async function fetchAllFeeds({ forceRefresh = false, hoursLimit = 24, selectedSourceIds = null, onProgress = null }: FeedOptions = {}): Promise<Article[]> {
+export async function fetchAllFeeds({ forceRefresh = false, hoursLimit = 24, selectedSourceIds = null, onProgress = null, onArticles = null }: FeedOptions = {}): Promise<Article[]> {
   const activeSources = selectedSourceIds?.length
     ? SOURCES.filter((source) => selectedSourceIds.includes(source.id))
     : SOURCES;
@@ -179,11 +192,17 @@ export async function fetchAllFeeds({ forceRefresh = false, hoursLimit = 24, sel
   }
 
   let completed = 0;
-  const promises = activeSources.map(async (source, index) => {
+  const articles: Article[] = [];
+  const notifyArticles = () => {
+    try { onArticles?.([...articles]); } catch { /* Progressive rendering must not interrupt loading. */ }
+  };
+  const promises = activeSources.map(async (source) => {
     let status: FeedProgress['status'] = 'failed';
     try {
-      await new Promise<void>((resolve) => window.setTimeout(resolve, index * 250));
       const result = await fetchSingleFeed(source);
+      articles.push(...result.items);
+      articles.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
+      notifyArticles();
       status = result.status;
       return result.items;
     } finally {
@@ -192,7 +211,7 @@ export async function fetchAllFeeds({ forceRefresh = false, hoursLimit = 24, sel
     }
   });
   const results = await Promise.allSettled(promises);
-  const articles = results.flatMap((result) => result.status === 'fulfilled' ? result.value : []);
+  articles.splice(0, articles.length, ...results.flatMap((result) => result.status === 'fulfilled' ? result.value : []));
   articles.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
   saveCache(cacheKey, articles);
   return filterByHours(articles, hoursLimit);

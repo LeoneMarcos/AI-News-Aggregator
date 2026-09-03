@@ -27,6 +27,7 @@ export interface FeedOptions {
   hoursLimit?: number;
   selectedSourceIds?: string[] | null;
   onProgress?: ((progress: FeedProgress) => void) | null;
+  onArticles?: ((articles: Article[]) => void) | null;
 }
 
 export interface Preferences {

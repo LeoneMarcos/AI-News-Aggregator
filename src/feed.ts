@@ -204,14 +204,21 @@ export async function fetchAllFeeds({ forceRefresh = false, hoursLimit = 24, sel
       articles.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
       notifyArticles();
       status = result.status;
-      return result.items;
+      return result;
     } finally {
       completed += 1;
       notifyProgress({ completed, total: activeSources.length, sourceId: source.id, status });
     }
   });
   const results = await Promise.allSettled(promises);
-  articles.splice(0, articles.length, ...results.flatMap((result) => result.status === 'fulfilled' ? result.value : []));
+  const feedResults = results.flatMap((result) => result.status === 'fulfilled' ? [result.value] : []);
+  articles.splice(0, articles.length, ...feedResults.flatMap((result) => result.items));
+  const allSourcesFailed = results.every((result) =>
+    result.status === 'rejected' || (result.status === 'fulfilled' && result.value.status === 'failed'),
+  );
+  if (activeSources.length > 0 && allSourcesFailed) {
+    throw new Error('All selected news sources failed to load.');
+  }
   articles.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
   saveCache(cacheKey, articles);
   return filterByHours(articles, hoursLimit);

@@ -103,8 +103,7 @@ describe('feed.js', () => {
 
   it('should handle invalid XML gracefully', async () => {
     fetch.mockResolvedValue({ ok: true, text: async () => '<invalid' });
-    const articles = await fetchAllFeeds({ forceRefresh: true });
-    expect(articles.length).toBe(0);
+    await expect(fetchAllFeeds({ forceRefresh: true })).rejects.toThrow('All selected news sources failed to load.');
   });
 
   it('should load from cache if available', async () => {
@@ -121,7 +120,7 @@ describe('feed.js', () => {
     const expiredData = { timestamp: 0, articles: [] };
     localStorage.getItem.mockReturnValue(JSON.stringify(expiredData));
     fetch.mockResolvedValue({ ok: false });
-    await fetchAllFeeds();
+    await expect(fetchAllFeeds()).rejects.toThrow('All selected news sources failed to load.');
     // Cache key now includes sorted source IDs
     const expectedKey = `ai_news_aggregator_feed_cache_${SOURCES.map(s => s.id).sort().join(',')}`;
     expect(localStorage.removeItem).toHaveBeenCalledWith(expectedKey);
@@ -207,7 +206,7 @@ describe('feed.js', () => {
 
     const progress = [];
     try {
-      await fetchAllFeeds({ forceRefresh: true, onProgress: (event) => progress.push(event) });
+      await expect(fetchAllFeeds({ forceRefresh: true, onProgress: (event) => progress.push(event) })).rejects.toThrow('All selected news sources failed to load.');
       expect(progress).toEqual([{ completed: 1, total: 1, sourceId: 'failed', status: 'failed' }]);
     } finally {
       SOURCES.length = 0;

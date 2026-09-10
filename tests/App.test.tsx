@@ -27,7 +27,7 @@ describe('App', () => {
 
     render(<App />);
 
-    expect(await screen.findByText('No articles found.')).toBeTruthy();
+    expect(await screen.findByText('No stories to show yet')).toBeTruthy();
     expect(screen.queryByRole('dialog', { name: 'AI News Aggregator setup' })).toBeNull();
   });
 

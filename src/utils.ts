@@ -2,39 +2,42 @@
 export function timeAgo(dateStr: string): string {
   const now = Date.now();
   const date = new Date(dateStr).getTime();
-  if (!Number.isFinite(date)) return 'Unknown date';
+  if (!Number.isFinite(date)) return "Unknown date";
   const diff = now - date;
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
 
-  if (minutes < 1) return 'Just now';
+  if (minutes < 1) return "Just now";
   if (minutes < 60) return `${minutes}m ago`;
   if (hours < 24) return `${hours}h ago`;
   if (days < 7) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 /** Strip HTML tags from a string. */
 export function stripHtml(html: string | null | undefined): string {
-  if (!html) return '';
-  const parsed = new DOMParser().parseFromString(html, 'text/html');
-  return parsed.body.textContent || '';
+  if (!html) return "";
+  const parsed = new DOMParser().parseFromString(html, "text/html");
+  return parsed.body.textContent || "";
 }
 
 /** Escape text before inserting it into an HTML context. */
 export function escapeHtml(str: string | null | undefined): string {
-  if (!str) return '';
-  const div = document.createElement('div');
+  if (!str) return "";
+  const div = document.createElement("div");
   div.textContent = str;
   return div.innerHTML;
 }
 
 /** Decode HTML entities like &#8217; back to real characters. */
 export function decodeHtmlEntities(str: string | null | undefined): string {
-  if (!str) return '';
-  const doc = new DOMParser().parseFromString(str, 'text/html');
-  return doc.documentElement.textContent || '';
+  if (!str) return "";
+  const doc = new DOMParser().parseFromString(str, "text/html");
+  return doc.documentElement.textContent || "";
 }
 
 /** Check if an article was published in the last N hours. */

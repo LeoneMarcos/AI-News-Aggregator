@@ -19,19 +19,20 @@ The system must let a browser select RSS sources, fetch and parse feeds through 
 
 | Area | Technology | Purpose |
 | --- | --- | --- |
-| Language | TypeScript `^7.0.2` | Strict application and test source |
-| Frontend | React `^19.2.8` / React DOM | UI and local state |
-| Build | Vite `^6.2.2` | Static bundle and dev server |
-| Styling | Project CSS in `src/style.css` | Token-driven editorial UI |
-| Icons | lucide-react `^1.39.0` | Interface icons |
+| Language | TypeScript `5.9.3` (strict) | Application and test source |
+| Frontend | React `19.2.8` / React DOM `19.2.8` | UI and local state |
+| Build | Vite `7.2.4` | Static bundle and dev server |
+| Styling | Tailwind CSS `4.3.3` (`@tailwindcss/vite` `4.3.3`), project CSS in `src/style.css` | Token-driven editorial UI |
+| Icons | lucide-react `1.39.0` | Interface icons |
 | Data | Browser fetch, RSS/Atom XML, public CORS proxies | Feed acquisition and normalization |
-| Testing | Vitest `^4.1.0`, Testing Library, jsdom | Pure and component behavior |
+| Testing | Vitest `4.1.0`, Testing Library (React `16.3.3`, DOM `10.4.1`), jsdom `28.1.0`, Playwright / `@playwright/test` `1.63.0` | Unit, component, and E2E testing |
+| Code Quality | ESLint `10.10.0` (`@eslint/js` `10.0.1`), Prettier `3.9.6` | Linting and formatting |
 | Hosting | Cloudflare Pages (documented deployment target) | Static production delivery |
-| CI/CD | GitHub Actions | npm install, tests, typecheck, build |
+| CI/CD | GitHub Actions | `npm ci`, dependency audit, format check, lint, typecheck, unit/component tests, build, Playwright install, E2E |
 
 ## 3. Runtime and package management
 
-Node.js 20 is the CI runtime. npm and the committed `package-lock.json` are the only package workflow. `node_modules` and generated `dist` are local artifacts. Do not hand-edit the lockfile or introduce duplicate test, styling, state, or HTTP ecosystems without a technical decision.
+Node.js 22.x is the CI runtime. npm and the committed `package-lock.json` are the only package workflow. `node_modules` and generated `dist` are local artifacts. Do not hand-edit the lockfile or introduce duplicate test, styling, state, or HTTP ecosystems without a technical decision.
 
 ## 4. Frontend architecture
 
@@ -51,11 +52,11 @@ No private credentials, authentication, authorization, user accounts, or sensiti
 
 ## 8. Testing and quality
 
-Required gates are `npm test -- --run`, `npm run typecheck`, and `npm run build`. The suite covers RSS/Atom parsing, proxy fallback, cache expiry/corruption, selected sources, progress completion, storage failure, utilities, metadata, and the setup shell. Browser smoke should cover setup, filter controls, loading/failure messaging, external-link semantics, responsive layout, and crawler response content types when browser tooling is available.
+Required gates in CI are strict `npm ci`, production dependency audit (`npm audit --omit=dev --audit-level=high`), format check (`npm run format:check`), lint (`npm run lint`), typecheck (`npm run typecheck`), unit and component tests (`npm test`), production build (`npm run build`), Playwright Chromium installation (`npx playwright install --with-deps chromium`), and Playwright E2E tests (`npm run test:e2e`). The Vitest suite covers RSS/Atom parsing, proxy fallback, cache expiry/corruption, selected sources, progress completion, storage failure, utilities, metadata, and the setup shell. The current Playwright E2E coverage is a shell/settings smoke test.
 
 ## 9. CI/CD and performance
 
-`.github/workflows/ci.yml` runs on pushes and pull requests to `main`, installs with `npm ci` on Node 20, runs tests, typecheck, and production build, and does not deploy or rewrite history. Keep the client bundle and first-run shell small, parallelize independent source requests, bound optional proxy work, and render valid partial results before slow sources finish. Do not add caching infrastructure or a backend without measured need.
+`.github/workflows/ci.yml` runs on pushes and pull requests to `main`, sets up Node.js 22.x, installs dependencies with `npm ci`, audits production dependencies, verifies formatting, runs linting, checks types, executes unit/component tests, builds the production bundle, installs Playwright Chromium, and runs Playwright E2E tests without deploying or rewriting history. Keep the client bundle and first-run shell small, parallelize independent source requests, bound optional proxy work, and render valid partial results before slow sources finish. Do not add caching infrastructure or a backend without measured need.
 
 ## 10. Repository structure and policy
 
@@ -75,9 +76,9 @@ The repository uses `src/` for application modules, `tests/` for behavior tests,
 
 | Area | Specification | Implementation | Severity | Action |
 | --- | --- | --- | --- | --- |
-| Runtime | npm lockfile, Node 20 CI, Vite SPA | Manifest, lockfile, CI, and source agree | Low | Keep runtime version visible in contributor docs |
+| Runtime | npm lockfile, Node 22.x CI, Vite SPA | Manifest, lockfile, CI, and source agree | Low | Keep runtime version visible in contributor docs |
 | Data boundary | Bounded public fetches and text-only rendering | 5-second proxy aborts, loser cancellation, DOMParser, and safe text rendering are present | Low | Reassess proxy reliability if public traffic grows |
-| Testing | Unit/component tests and build | 36 tests, typecheck, and build pass after changes | Low | Add browser CI only when regression risk justifies it |
+| Testing | Unit/component tests, a Playwright shell/settings smoke test, and build | 36 Vitest tests, one Playwright smoke test, typecheck, format check, lint, audit, and build pass in CI | Low | Keep the E2E smoke test synchronized with the shell/settings UI |
 | Delivery | Static metadata/crawler files at root paths | Files are in `public/` and copied by Vite | Low | Verify content type/status at the next production publish |
 
 ### Conclusion

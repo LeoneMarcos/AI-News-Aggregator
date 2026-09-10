@@ -23,7 +23,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react&logoColor=white" alt="React 19" />
   <img src="https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Vite-6-646cff?style=flat-square&logo=vite&logoColor=white" alt="Vite 6" />
+  <img src="https://img.shields.io/badge/Vite-7-646cff?style=flat-square&logo=vite&logoColor=white" alt="Vite 7" />
   <img src="https://img.shields.io/badge/Vitest-4-6e9f18?style=flat-square&logo=vitest&logoColor=white" alt="Vitest 4" />
   <img src="https://img.shields.io/badge/Deploy-Cloudflare-f38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare" />
 </p>
@@ -117,7 +117,7 @@ Browser
 | Frontend | React 19, TypeScript |
 | UI | Lucide React, Google Fonts |
 | Data | RSS feeds, client-side XML parsing, CORS proxy fallbacks |
-| Build | Vite 6 |
+| Build | Vite 7 |
 | Testing | Vitest 4, jsdom |
 | CI | GitHub Actions |
 | Hosting | Cloudflare Pages |

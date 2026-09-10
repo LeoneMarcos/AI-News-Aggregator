@@ -30,7 +30,7 @@ jobs:
           node-version: 22.x
           cache: npm
 
-      - name: Activate Tailwind 4 without redesign
+      - name: Activate Tailwind 4 and normalize initial React state
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -45,12 +45,76 @@ jobs:
 
           app = Path('src/App.tsx')
           app_text = app.read_text()
-          old = 'className="app-shell"'
-          new = 'className="app-shell min-h-screen"'
-          if new not in app_text:
-              if app_text.count(old) != 1:
-                  raise SystemExit(f'Expected exactly one app shell class, found {app_text.count(old)}')
-              app.write_text(app_text.replace(old, new, 1))
+
+          old_shell = 'className="app-shell"'
+          new_shell = 'className="app-shell min-h-screen"'
+          if new_shell not in app_text:
+              if app_text.count(old_shell) != 1:
+                  raise SystemExit(f'Expected exactly one app shell class, found {app_text.count(old_shell)}')
+              app_text = app_text.replace(old_shell, new_shell, 1)
+
+          old_state = '''export default function App() {
+            const [articles, setArticles] = useState<Article[]>([]);
+            const [activeSources, setActiveSources] = useState<string[]>(SOURCES.map((source) => source.id));
+            const [filter, setFilter] = useState('all');
+            const [query, setQuery] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [progress, setProgress] = useState<FeedProgress | null>(null);
+            const [error, setError] = useState(false);
+            const [setupOpen, setSetupOpen] = useState(false);
+            const [setupPrefs, setSetupPrefs] = useState<Preferences | null>(null);
+          '''.replace('            ', '  ')
+
+          new_state = '''export default function App() {
+            const [initialPrefs] = useState(() => loadPrefs());
+            const [articles, setArticles] = useState<Article[]>([]);
+            const [activeSources, setActiveSources] = useState<string[]>(() => {
+              if (!initialPrefs) return [];
+              const validIds = new Set(SOURCES.map((source) => source.id));
+              return initialPrefs.sources.filter((source) => validIds.has(source));
+            });
+            const [filter, setFilter] = useState('all');
+            const [query, setQuery] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [progress, setProgress] = useState<FeedProgress | null>(null);
+            const [error, setError] = useState(false);
+            const [setupOpen, setSetupOpen] = useState(() => !initialPrefs);
+            const [setupPrefs, setSetupPrefs] = useState<Preferences | null>(() => initialPrefs);
+          '''.replace('            ', '  ')
+
+          if 'const [initialPrefs] = useState(() => loadPrefs());' not in app_text:
+              if app_text.count(old_state) != 1:
+                  raise SystemExit(f'Expected exactly one initial state block, found {app_text.count(old_state)}')
+              app_text = app_text.replace(old_state, new_state, 1)
+
+          old_effect = '''  useEffect(() => {
+            if (didInitialize.current) return;
+            didInitialize.current = true;
+            const prefs = loadPrefs();
+            if (!prefs) {
+              setActiveSources([]);
+              setSetupPrefs(null);
+              setSetupOpen(true);
+            } else {
+              applyPrefs(prefs);
+              void loadFeed(false, prefs.sources);
+            }
+          }, [applyPrefs, loadFeed]);'''.replace('            ', '  ')
+
+          new_effect = '''  useEffect(() => {
+            if (didInitialize.current) return;
+            didInitialize.current = true;
+            if (initialPrefs?.sources.length) {
+              void loadFeed(false, initialPrefs.sources);
+            }
+          }, [initialPrefs, loadFeed]);'''.replace('            ', '  ')
+
+          if 'if (initialPrefs?.sources.length)' not in app_text:
+              if app_text.count(old_effect) != 1:
+                  raise SystemExit(f'Expected exactly one initialization effect, found {app_text.count(old_effect)}')
+              app_text = app_text.replace(old_effect, new_effect, 1)
+
+          app.write_text(app_text)
           PY
 
       - name: Rebuild dependency lock from canonical manifest

@@ -27,6 +27,10 @@ describe('utils.js', () => {
       const oldDate = '2023-01-01T10:00:00Z';
       expect(timeAgo(oldDate)).toContain('Jan');
     });
+
+    it('should return a readable fallback for invalid dates', () => {
+      expect(timeAgo('not-a-date')).toBe('Unknown date');
+    });
   });
 
   describe('HTML utilities', () => {

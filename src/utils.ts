@@ -2,6 +2,7 @@
 export function timeAgo(dateStr: string): string {
   const now = Date.now();
   const date = new Date(dateStr).getTime();
+  if (!Number.isFinite(date)) return 'Unknown date';
   const diff = now - date;
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
@@ -17,9 +18,8 @@ export function timeAgo(dateStr: string): string {
 /** Strip HTML tags from a string. */
 export function stripHtml(html: string | null | undefined): string {
   if (!html) return '';
-  const tmp = document.createElement('div');
-  tmp.innerHTML = html;
-  return tmp.textContent || tmp.innerText || '';
+  const parsed = new DOMParser().parseFromString(html, 'text/html');
+  return parsed.body.textContent || '';
 }
 
 /** Escape text before inserting it into an HTML context. */

@@ -1,0 +1,70 @@
+name: Publish Showcase
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ai-news-aggregator-showcase
+  cancel-in-progress: true
+
+jobs:
+  showcase:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Playwright runtime
+        run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium
+      - name: Ensure FFmpeg is available
+        run: command -v ffmpeg >/dev/null || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+      - name: Capture canonical showcase
+        env:
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:5173/
+        run: |
+          npm run dev -- --host 127.0.0.1 --port 5173 > /tmp/ai-news-vite.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:5173/ >/dev/null; then
+              break
+            fi
+            if [ "$attempt" -eq 60 ]; then
+              cat /tmp/ai-news-vite.log
+              exit 1
+            fi
+            sleep 1
+          done
+          node showcase-assets/capture-showcase.mjs
+          node showcase-assets/convert-showcase.mjs
+      - name: Upload showcase evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-news-aggregator-showcase-${{ github.run_id }}
+          path: |
+            showcase-assets/ai-news-aggregator-showcase.mp4
+            showcase-assets/raw-auto/
+            showcase-assets/screenshots/
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Publish canonical media to main
+        run: |
+          git add showcase-assets/ai-news-aggregator-showcase.mp4 showcase-assets/screenshots/poster.png
+          if git diff --cached --quiet; then
+            echo "Canonical showcase is already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(showcase): refresh canonical media"
+          git push origin HEAD:main

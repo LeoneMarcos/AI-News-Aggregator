@@ -57,7 +57,7 @@ The app keeps source selection locally, supports filtering by publication, and u
 
 The short showcase video covers source selection, the loaded news feed, and filtering by source.
 
-https://github.com/user-attachments/assets/4dfd7103-3ed0-4a76-9cd0-7a028ec64a1f
+[Watch the current showcase video](https://raw.githubusercontent.com/LeoneMarcos/AI-News-Aggregator/main/showcase-assets/ai-news-aggregator-showcase.mp4)
 
 ---
 
@@ -131,7 +131,7 @@ npm run typecheck
 npm run build
 ```
 
-The Vitest suite covers feed parsing, proxy fallback behavior, cache handling, utility functions, preference migration, and the typed application modules.
+The Vitest suite covers feed parsing, proxy fallback behavior, cache handling, utility functions, preference migration, and the typed application modules. The **Publish Showcase** GitHub Actions workflow records a deterministic browser walkthrough with mocked RSS responses and refreshes the canonical video on demand; the stable video URL is reused by the project README, profile, and portfolio.
 
 ## License
 

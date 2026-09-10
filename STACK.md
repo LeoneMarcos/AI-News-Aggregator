@@ -52,7 +52,7 @@ No private credentials, authentication, authorization, user accounts, or sensiti
 
 ## 8. Testing and quality
 
-Required gates in CI are strict `npm ci`, production dependency audit (`npm audit --omit=dev --audit-level=high`), format check (`npm run format:check`), lint (`npm run lint`), typecheck (`npm run typecheck`), unit and component tests (`npm test`), production build (`npm run build`), Playwright Chromium installation (`npx playwright install --with-deps chromium`), and Playwright E2E tests (`npm run test:e2e`). The Vitest suite covers RSS/Atom parsing, proxy fallback, cache expiry/corruption, selected sources, progress completion, storage failure, utilities, metadata, and the setup shell. Playwright E2E tests verify complete browser workflows.
+Required gates in CI are strict `npm ci`, production dependency audit (`npm audit --omit=dev --audit-level=high`), format check (`npm run format:check`), lint (`npm run lint`), typecheck (`npm run typecheck`), unit and component tests (`npm test`), production build (`npm run build`), Playwright Chromium installation (`npx playwright install --with-deps chromium`), and Playwright E2E tests (`npm run test:e2e`). The Vitest suite covers RSS/Atom parsing, proxy fallback, cache expiry/corruption, selected sources, progress completion, storage failure, utilities, metadata, and the setup shell. The current Playwright E2E coverage is a shell/settings smoke test.
 
 ## 9. CI/CD and performance
 
@@ -78,7 +78,7 @@ The repository uses `src/` for application modules, `tests/` for behavior tests,
 | --- | --- | --- | --- | --- |
 | Runtime | npm lockfile, Node 22.x CI, Vite SPA | Manifest, lockfile, CI, and source agree | Low | Keep runtime version visible in contributor docs |
 | Data boundary | Bounded public fetches and text-only rendering | 5-second proxy aborts, loser cancellation, DOMParser, and safe text rendering are present | Low | Reassess proxy reliability if public traffic grows |
-| Testing | Unit/component tests, Playwright E2E, and build | 36 Vitest tests, Playwright E2E tests, typecheck, format check, lint, audit, and build pass in CI | Low | Keep E2E tests synchronized with UI workflows |
+| Testing | Unit/component tests, a Playwright shell/settings smoke test, and build | 36 Vitest tests, one Playwright smoke test, typecheck, format check, lint, audit, and build pass in CI | Low | Keep the E2E smoke test synchronized with the shell/settings UI |
 | Delivery | Static metadata/crawler files at root paths | Files are in `public/` and copied by Vite | Low | Verify content type/status at the next production publish |
 
 ### Conclusion

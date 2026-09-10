@@ -128,7 +128,7 @@ try {
   await wait(1_200);
   await page.screenshot({ path: path.join(screenshotsDir, 'poster.png') });
 
-  const techCrunchFilter = page.getByRole('link', { name: 'TechCrunch', exact: true });
+  const techCrunchFilter = page.getByRole('button', { name: 'TechCrunch', exact: true });
   await techCrunchFilter.click();
   await wait(1_500);
   const cards = page.locator('.news-card:not(.skeleton-card)');
@@ -136,7 +136,7 @@ try {
 
   await techCrunchFilter.click();
   await wait(600);
-  await page.getByRole('link', { name: 'All sources', exact: true }).click();
+  await page.getByRole('button', { name: 'All sources', exact: true }).click();
   await wait(900);
 
   if (pageErrors.length) throw new Error(`Application errors during capture: ${pageErrors.join(' | ')}`);

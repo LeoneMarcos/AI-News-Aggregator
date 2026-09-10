@@ -81,7 +81,7 @@ jobs:
                       raise SystemExit(f'Expected exactly one occurrence for migration marker: {old!r}; found {app_text.count(old)}')
                   app_text = app_text.replace(old, new, 1)
 
-          if 'if (initialPrefs?.sources.length)' not in app_text:
+          if 'const timer = window.setTimeout' not in app_text:
               pattern = re.compile(
                   r"  useEffect\(\(\) => \{\n"
                   r"    if \(didInitialize\.current\) return;\n"
@@ -101,9 +101,11 @@ jobs:
                   "  useEffect(() => {\n"
                   "    if (didInitialize.current) return;\n"
                   "    didInitialize.current = true;\n"
-                  "    if (initialPrefs?.sources.length) {\n"
+                  "    if (!initialPrefs?.sources.length) return;\n"
+                  "    const timer = window.setTimeout(() => {\n"
                   "      void loadFeed(false, initialPrefs.sources);\n"
-                  "    }\n"
+                  "    }, 0);\n"
+                  "    return () => window.clearTimeout(timer);\n"
                   "  }, [initialPrefs, loadFeed]);"
               )
               app_text, count = pattern.subn(replacement, app_text, count=1)

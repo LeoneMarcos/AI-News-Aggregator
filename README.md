@@ -41,7 +41,7 @@
 ---
 
 <p align="center">
-  <img src="showcase-assets/poster.png" alt="AI News Aggregator editorial news feed interface" width="850" />
+  <img src="showcase-assets/screenshots/poster.png" alt="AI News Aggregator editorial news feed interface" width="850" />
 </p>
 
 ## Overview
@@ -65,11 +65,11 @@ The application operates without tracking, server infrastructure, or account req
 
 Watch the short product walkthrough demonstrating source selection, progressive loading, live feed filtering, and keyword search:
 
-[![AI News Aggregator Showcase](showcase-assets/screenshots/poster.png)](https://raw.githubusercontent.com/LeoneMarcos/AI-News-Aggregator/main/showcase-assets/ai-news-aggregator-showcase.mp4)
+[![AI News Aggregator animated showcase preview](showcase-assets/showcase-preview.gif)](https://raw.githubusercontent.com/LeoneMarcos/AI-News-Aggregator/main/showcase-assets/ai-news-aggregator-showcase.mp4)
 
-The short showcase video covers source selection, the loaded news feed, and filtering by source.
+The animated preview shows a short excerpt of the canonical showcase. Open the full video below for the complete flow.
 
-[Watch the current showcase video](https://raw.githubusercontent.com/LeoneMarcos/AI-News-Aggregator/main/showcase-assets/ai-news-aggregator-showcase.mp4)
+[![Showcase Video](https://img.shields.io/badge/Showcase-Video-8c4f3d?style=flat-square&logo=github&logoColor=white)](https://raw.githubusercontent.com/LeoneMarcos/AI-News-Aggregator/main/showcase-assets/ai-news-aggregator-showcase.mp4)
 
 ---
 
@@ -179,7 +179,7 @@ Open the localhost URL printed by Vite in your browser.
 | `npm test -- --run` | Executes complete Vitest unit and component test suite |
 | `npm run typecheck` | Validates strict TypeScript compilation without emit |
 
-The Vitest suite covers feed parsing, proxy fallback behavior, cache handling, utility functions, preference migration, and the typed application modules. The **Publish Showcase** GitHub Actions workflow records a deterministic browser walkthrough with mocked RSS responses and refreshes the canonical video on demand; the stable video URL is reused by the project README, profile, and portfolio.
+The Vitest suite covers feed parsing, proxy fallback behavior, cache handling, utility functions, preference migration, and the typed application modules. The **Publish Showcase** GitHub Actions workflow records a deterministic browser walkthrough with mocked RSS responses and regenerates the canonical video, poster, and short README GIF preview when relevant product/showcase inputs change; it can also be run manually. The stable media paths are reused across the project presentation.
 
 ---
 

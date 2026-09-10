@@ -32,8 +32,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Install Playwright runtime
-        run: npm install --no-save --no-package-lock --legacy-peer-deps playwright@1.62.1
       - run: npx playwright install --with-deps chromium
       - name: Ensure FFmpeg is available
         run: command -v ffmpeg >/dev/null || (sudo apt-get update && sudo apt-get install -y ffmpeg)

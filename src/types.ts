@@ -19,7 +19,7 @@ export interface FeedProgress {
   completed: number;
   total: number;
   sourceId: string | null;
-  status: 'loaded' | 'failed' | 'cached';
+  status: "loaded" | "failed" | "cached";
 }
 
 export interface FeedOptions {

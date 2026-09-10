@@ -1,9 +1,20 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, Check, ExternalLink, Newspaper, Plus, Radio, RefreshCw, Search, Settings, X } from 'lucide-react';
-import { fetchAllFeeds, SOURCES } from './feed';
-import { loadPrefs, savePrefs } from './setup';
-import type { Article, FeedProgress, Preferences } from './types';
-import { timeAgo } from './utils';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ArrowRight,
+  Check,
+  ExternalLink,
+  Newspaper,
+  Plus,
+  Radio,
+  RefreshCw,
+  Search,
+  Settings,
+  X,
+} from "lucide-react";
+import { fetchAllFeeds, SOURCES } from "./feed";
+import { loadPrefs, savePrefs } from "./setup";
+import type { Article, FeedProgress, Preferences } from "./types";
+import { timeAgo } from "./utils";
 
 const MODAL_EXIT_DURATION_MS = 200;
 
@@ -32,7 +43,9 @@ function LoadingState({ total, progress, showSkeletons }: LoadingStateProps) {
           aria-valuemax={total}
           aria-valuenow={completed}
         >
-          <span style={{ width: `${total ? (completed / total) * 100 : 100}%` }} />
+          <span
+            style={{ width: `${total ? (completed / total) * 100 : 100}%` }}
+          />
         </div>
       </div>
       {showSkeletons &&
@@ -61,8 +74,14 @@ function EmptyState({ onChoose }: { onChoose: () => void }) {
       </div>
       <p className="eyebrow">Your feed is waiting</p>
       <h3>Choose your news sources.</h3>
-      <p>Select at least one portal to build your personal intelligence brief.</p>
-      <button className="btn-primary empty-state-action" type="button" onClick={onChoose}>
+      <p>
+        Select at least one portal to build your personal intelligence brief.
+      </p>
+      <button
+        className="btn-primary empty-state-action"
+        type="button"
+        onClick={onChoose}
+      >
         Choose sources <ArrowRight aria-hidden="true" />
       </button>
     </div>
@@ -81,11 +100,13 @@ function Sidebar({ activeSources, filter, onFilter }: SidebarProps) {
   }
 
   const links = [
-    { id: 'all', label: 'All sources' },
-    ...SOURCES.filter((source) => activeSources.includes(source.id)).map((source) => ({
-      id: source.id,
-      label: source.name,
-    })),
+    { id: "all", label: "All sources" },
+    ...SOURCES.filter((source) => activeSources.includes(source.id)).map(
+      (source) => ({
+        id: source.id,
+        label: source.name,
+      }),
+    ),
   ];
 
   return (
@@ -95,9 +116,9 @@ function Sidebar({ activeSources, filter, onFilter }: SidebarProps) {
         return (
           <button
             key={link.id}
-            className={`source-link${isCurrent ? ' active-nav-item' : ''}`}
+            className={`source-link${isCurrent ? " active-nav-item" : ""}`}
             type="button"
-            aria-current={isCurrent ? 'page' : undefined}
+            aria-current={isCurrent ? "page" : undefined}
             onClick={() => onFilter(link.id)}
           >
             <span>{link.label}</span>
@@ -120,7 +141,9 @@ function NewsCard({ article }: { article: Article }) {
       <h3 id={titleId} className="card-title">
         {article.title}
       </h3>
-      {article.description && <p className="card-description">{article.description}</p>}
+      {article.description && (
+        <p className="card-description">{article.description}</p>
+      )}
       {article.link ? (
         <a
           className="read-more"
@@ -133,7 +156,9 @@ function NewsCard({ article }: { article: Article }) {
           <ExternalLink aria-hidden="true" />
         </a>
       ) : (
-        <span className="read-more read-more-unavailable">Article link unavailable</span>
+        <span className="read-more read-more-unavailable">
+          Article link unavailable
+        </span>
       )}
     </article>
   );
@@ -146,7 +171,9 @@ interface SetupModalProps {
 }
 
 function SetupModal({ initialPrefs, onComplete, onClose }: SetupModalProps) {
-  const [selected, setSelected] = useState(() => new Set(initialPrefs?.sources ?? []));
+  const [selected, setSelected] = useState(
+    () => new Set(initialPrefs?.sources ?? []),
+  );
   const [closing, setClosing] = useState(false);
   const closingRef = useRef(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -173,15 +200,17 @@ function SetupModal({ initialPrefs, onComplete, onClose }: SetupModalProps) {
     closeButtonRef.current?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         event.preventDefault();
         close();
         return;
       }
-      if (event.key !== 'Tab') return;
+      if (event.key !== "Tab") return;
 
       const focusable = Array.from(
-        dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled])') ?? []
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          "button:not([disabled])",
+        ) ?? [],
       );
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -196,16 +225,16 @@ function SetupModal({ initialPrefs, onComplete, onClose }: SetupModalProps) {
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
       previousFocus?.focus();
     };
   }, [close]);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = previousOverflow;
     };
@@ -226,7 +255,7 @@ function SetupModal({ initialPrefs, onComplete, onClose }: SetupModalProps) {
   return (
     <div
       id="setup-overlay"
-      className={`setup-visible${closing ? ' setup-exit' : ''}`}
+      className={`setup-visible${closing ? " setup-exit" : ""}`}
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) close();
@@ -252,7 +281,9 @@ function SetupModal({ initialPrefs, onComplete, onClose }: SetupModalProps) {
                 alt="AI News Aggregator logo"
                 className="setup-logo-img"
               />
-              <span className="setup-logo-text brand-name">AI News Aggregator</span>
+              <span className="setup-logo-text brand-name">
+                AI News Aggregator
+              </span>
             </div>
             <button
               ref={closeButtonRef}
@@ -279,12 +310,14 @@ function SetupModal({ initialPrefs, onComplete, onClose }: SetupModalProps) {
           <h2 className="setup-step-title" id="setup-title">
             <Newspaper aria-hidden="true" /> A better brief starts here.
           </h2>
-          <p className="setup-step-desc">Choose the publications you trust. Make this feed your own.</p>
+          <p className="setup-step-desc">
+            Choose the publications you trust. Make this feed your own.
+          </p>
           <div className="sources-grid">
             {SOURCES.map((source) => (
               <button
                 key={source.id}
-                className={`source-card${selected.has(source.id) ? ' selected' : ''}`}
+                className={`source-card${selected.has(source.id) ? " selected" : ""}`}
                 type="button"
                 aria-pressed={selected.has(source.id)}
                 onClick={() => toggle(source.id)}
@@ -303,14 +336,17 @@ function SetupModal({ initialPrefs, onComplete, onClose }: SetupModalProps) {
               type="button"
               onClick={() =>
                 setSelected(
-                  selectAll ? new Set(SOURCES.map((source) => source.id)) : new Set()
+                  selectAll
+                    ? new Set(SOURCES.map((source) => source.id))
+                    : new Set(),
                 )
               }
             >
-              {selectAll ? 'Select all' : 'Deselect all'}
+              {selectAll ? "Select all" : "Deselect all"}
             </button>
             <button className="btn-primary" type="button" onClick={finish}>
-              {initialPrefs ? 'Save sources' : 'Start reading'} <ArrowRight aria-hidden="true" />
+              {initialPrefs ? "Save sources" : "Start reading"}{" "}
+              <ArrowRight aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -320,28 +356,35 @@ function SetupModal({ initialPrefs, onComplete, onClose }: SetupModalProps) {
 }
 
 export default function App() {
+  const [initialPrefs] = useState(() => loadPrefs());
   const [articles, setArticles] = useState<Article[]>([]);
-  const [activeSources, setActiveSources] = useState<string[]>(SOURCES.map((source) => source.id));
-  const [filter, setFilter] = useState('all');
-  const [query, setQuery] = useState('');
+  const [activeSources, setActiveSources] = useState<string[]>(() => {
+    if (!initialPrefs) return [];
+    const validIds = new Set(SOURCES.map((source) => source.id));
+    return initialPrefs.sources.filter((source) => validIds.has(source));
+  });
+  const [filter, setFilter] = useState("all");
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<FeedProgress | null>(null);
   const [error, setError] = useState(false);
-  const [setupOpen, setSetupOpen] = useState(false);
-  const [setupPrefs, setSetupPrefs] = useState<Preferences | null>(null);
+  const [setupOpen, setSetupOpen] = useState(() => !initialPrefs);
+  const [setupPrefs, setSetupPrefs] = useState<Preferences | null>(
+    () => initialPrefs,
+  );
 
   const didInitialize = useRef(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const clearSearch = () => {
-    setQuery('');
+    setQuery("");
     searchInputRef.current?.focus();
   };
 
   const applyPrefs = useCallback((prefs: Preferences) => {
     const validIds = new Set(SOURCES.map((source) => source.id));
     setActiveSources(prefs.sources.filter((source) => validIds.has(source)));
-    setFilter('all');
+    setFilter("all");
   }, []);
 
   const loadFeed = useCallback(
@@ -369,30 +412,27 @@ export default function App() {
         setLoading(false);
       }
     },
-    [activeSources]
+    [activeSources],
   );
 
   useEffect(() => {
     if (didInitialize.current) return;
     didInitialize.current = true;
-    const prefs = loadPrefs();
-    if (!prefs) {
-      setActiveSources([]);
-      setSetupPrefs(null);
-      setSetupOpen(true);
-    } else {
-      applyPrefs(prefs);
-      void loadFeed(false, prefs.sources);
-    }
-  }, [applyPrefs, loadFeed]);
+    if (!initialPrefs?.sources.length) return;
+    const timer = window.setTimeout(() => {
+      void loadFeed(false, initialPrefs.sources);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [initialPrefs, loadFeed]);
 
   const filteredArticles = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return articles.filter((article) => {
-      const matchesFilter = filter === 'all' || article.sourceId === filter;
+      const matchesFilter = filter === "all" || article.sourceId === filter;
       if (!matchesFilter) return false;
       if (!normalizedQuery) return true;
-      const haystack = `${article.title} ${article.description} ${article.sourceName}`.toLowerCase();
+      const haystack =
+        `${article.title} ${article.description} ${article.sourceName}`.toLowerCase();
       return haystack.includes(normalizedQuery);
     });
   }, [articles, filter, query]);
@@ -409,12 +449,12 @@ export default function App() {
   };
 
   const currentSourceHeading =
-    filter === 'all'
-      ? 'Latest stories'
-      : SOURCES.find((source) => source.id === filter)?.name ?? filter;
+    filter === "all"
+      ? "Latest stories"
+      : (SOURCES.find((source) => source.id === filter)?.name ?? filter);
 
   return (
-    <div className="app-shell">
+    <div className="app-shell min-h-screen">
       <a className="skip-link" href="#main-content">
         Skip to articles
       </a>
@@ -430,7 +470,9 @@ export default function App() {
             <h1 className="brand-name">
               AI News <span className="brand-name-light">Aggregator</span>
             </h1>
-            <span className="brand-tagline">A wider lens on artificial intelligence</span>
+            <span className="brand-tagline">
+              A wider lens on artificial intelligence
+            </span>
           </div>
         </div>
         <button
@@ -447,10 +489,15 @@ export default function App() {
       <div className="app-layout">
         <aside className="sidebar">
           <div className="sidebar-label">
-            Reading room <span>{activeSources.length.toString().padStart(2, '0')}</span>
+            Reading room{" "}
+            <span>{activeSources.length.toString().padStart(2, "0")}</span>
           </div>
           <nav id="sidebar-nav" aria-label="News sources">
-            <Sidebar activeSources={activeSources} filter={filter} onFilter={setFilter} />
+            <Sidebar
+              activeSources={activeSources}
+              filter={filter}
+              onFilter={setFilter}
+            />
           </nav>
           <button className="manage-sources" type="button" onClick={openSetup}>
             <Plus aria-hidden="true" /> Manage sources
@@ -476,7 +523,9 @@ export default function App() {
                 <br />
                 of what’s <em>next.</em>
               </h2>
-              <p className="heading-description">The latest in AI, from the sources you choose.</p>
+              <p className="heading-description">
+                The latest in AI, from the sources you choose.
+              </p>
             </div>
           </div>
 
@@ -488,7 +537,7 @@ export default function App() {
                 aria-label={`${filteredArticles.length} stories`}
               >
                 {filteredArticles.length}
-                {loading ? '+' : ''}
+                {loading ? "+" : ""}
               </span>
             </div>
 
@@ -503,12 +552,12 @@ export default function App() {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   onKeyDown={(event) => {
-                    if (event.key === 'Escape') clearSearch();
+                    if (event.key === "Escape") clearSearch();
                   }}
                 />
                 <button
                   type="button"
-                  className={query ? undefined : 'search-clear-hidden'}
+                  className={query ? undefined : "search-clear-hidden"}
                   aria-label="Clear search"
                   tabIndex={query ? 0 : -1}
                   disabled={!query}
@@ -520,10 +569,14 @@ export default function App() {
 
               {activeSources.length > 0 && (
                 <button
-                  className={`refresh-button${loading ? ' is-refreshing' : ''}`}
+                  className={`refresh-button${loading ? " is-refreshing" : ""}`}
                   type="button"
-                  aria-label={loading ? 'Refreshing feed, please wait' : 'Refresh feed'}
-                  title={loading ? 'Refreshing feed, please wait' : 'Refresh feed'}
+                  aria-label={
+                    loading ? "Refreshing feed, please wait" : "Refresh feed"
+                  }
+                  title={
+                    loading ? "Refreshing feed, please wait" : "Refresh feed"
+                  }
                   disabled={loading}
                   onClick={() => void loadFeed(true)}
                 >
@@ -549,7 +602,11 @@ export default function App() {
                 </div>
                 <h3>The brief couldn’t load.</h3>
                 <p>Try again to reconnect with your sources.</p>
-                <button className="btn-primary" type="button" onClick={() => void loadFeed(true)}>
+                <button
+                  className="btn-primary"
+                  type="button"
+                  onClick={() => void loadFeed(true)}
+                >
                   Try again <RefreshCw aria-hidden="true" />
                 </button>
               </div>
@@ -558,17 +615,29 @@ export default function App() {
             ) : !filteredArticles.length && !loading ? (
               <div className="empty-state" role="status">
                 <div className="empty-state-icon">
-                  {query.trim() ? <Search aria-hidden="true" /> : <Newspaper aria-hidden="true" />}
+                  {query.trim() ? (
+                    <Search aria-hidden="true" />
+                  ) : (
+                    <Newspaper aria-hidden="true" />
+                  )}
                 </div>
-                <h3>{query.trim() ? 'No matching stories' : 'No stories to show yet'}</h3>
+                <h3>
+                  {query.trim()
+                    ? "No matching stories"
+                    : "No stories to show yet"}
+                </h3>
                 <p>
                   {query.trim()
-                    ? 'Try a different keyword or clear your search to see this feed.'
-                    : 'Check for new articles or adjust the sources in your brief.'}
+                    ? "Try a different keyword or clear your search to see this feed."
+                    : "Check for new articles or adjust the sources in your brief."}
                 </p>
                 <div className="empty-state-actions">
                   {query.trim() ? (
-                    <button className="btn-primary" type="button" onClick={clearSearch}>
+                    <button
+                      className="btn-primary"
+                      type="button"
+                      onClick={clearSearch}
+                    >
                       Clear search <X aria-hidden="true" />
                     </button>
                   ) : (
@@ -580,20 +649,24 @@ export default function App() {
                       <RefreshCw aria-hidden="true" /> Refresh feed
                     </button>
                   )}
-                  {filter !== 'all' ? (
+                  {filter !== "all" ? (
                     <button
                       className="btn-ghost"
                       type="button"
                       onClick={() => {
-                        setFilter('all');
-                        setQuery('');
+                        setFilter("all");
+                        setQuery("");
                       }}
                     >
                       View all sources
                     </button>
                   ) : (
                     !query.trim() && (
-                      <button className="btn-ghost" type="button" onClick={openSetup}>
+                      <button
+                        className="btn-ghost"
+                        type="button"
+                        onClick={openSetup}
+                      >
                         Choose sources
                       </button>
                     )
@@ -601,7 +674,9 @@ export default function App() {
                 </div>
               </div>
             ) : (
-              filteredArticles.map((article) => <NewsCard article={article} key={article.id} />)
+              filteredArticles.map((article) => (
+                <NewsCard article={article} key={article.id} />
+              ))
             )}
           </div>
 

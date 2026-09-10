@@ -34,6 +34,7 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
           css = Path('src/style.css')
           css_text = css.read_text()
@@ -46,73 +47,68 @@ jobs:
           app = Path('src/App.tsx')
           app_text = app.read_text()
 
-          old_shell = 'className="app-shell"'
-          new_shell = 'className="app-shell min-h-screen"'
-          if new_shell not in app_text:
-              if app_text.count(old_shell) != 1:
-                  raise SystemExit(f'Expected exactly one app shell class, found {app_text.count(old_shell)}')
-              app_text = app_text.replace(old_shell, new_shell, 1)
+          replacements = [
+              (
+                  'export default function App() {\n',
+                  'export default function App() {\n  const [initialPrefs] = useState(() => loadPrefs());\n',
+                  'const [initialPrefs] = useState(() => loadPrefs());',
+              ),
+              (
+                  '  const [activeSources, setActiveSources] = useState<string[]>(SOURCES.map((source) => source.id));',
+                  "  const [activeSources, setActiveSources] = useState<string[]>(() => {\n    if (!initialPrefs) return [];\n    const validIds = new Set(SOURCES.map((source) => source.id));\n    return initialPrefs.sources.filter((source) => validIds.has(source));\n  });",
+                  'return initialPrefs.sources.filter((source) => validIds.has(source));',
+              ),
+              (
+                  '  const [setupOpen, setSetupOpen] = useState(false);',
+                  '  const [setupOpen, setSetupOpen] = useState(() => !initialPrefs);',
+                  'const [setupOpen, setSetupOpen] = useState(() => !initialPrefs);',
+              ),
+              (
+                  '  const [setupPrefs, setSetupPrefs] = useState<Preferences | null>(null);',
+                  '  const [setupPrefs, setSetupPrefs] = useState<Preferences | null>(() => initialPrefs);',
+                  'const [setupPrefs, setSetupPrefs] = useState<Preferences | null>(() => initialPrefs);',
+              ),
+              (
+                  'className="app-shell"',
+                  'className="app-shell min-h-screen"',
+                  'className="app-shell min-h-screen"',
+              ),
+          ]
 
-          old_state = '''export default function App() {
-            const [articles, setArticles] = useState<Article[]>([]);
-            const [activeSources, setActiveSources] = useState<string[]>(SOURCES.map((source) => source.id));
-            const [filter, setFilter] = useState('all');
-            const [query, setQuery] = useState('');
-            const [loading, setLoading] = useState(false);
-            const [progress, setProgress] = useState<FeedProgress | null>(null);
-            const [error, setError] = useState(false);
-            const [setupOpen, setSetupOpen] = useState(false);
-            const [setupPrefs, setSetupPrefs] = useState<Preferences | null>(null);
-          '''.replace('            ', '  ')
-
-          new_state = '''export default function App() {
-            const [initialPrefs] = useState(() => loadPrefs());
-            const [articles, setArticles] = useState<Article[]>([]);
-            const [activeSources, setActiveSources] = useState<string[]>(() => {
-              if (!initialPrefs) return [];
-              const validIds = new Set(SOURCES.map((source) => source.id));
-              return initialPrefs.sources.filter((source) => validIds.has(source));
-            });
-            const [filter, setFilter] = useState('all');
-            const [query, setQuery] = useState('');
-            const [loading, setLoading] = useState(false);
-            const [progress, setProgress] = useState<FeedProgress | null>(null);
-            const [error, setError] = useState(false);
-            const [setupOpen, setSetupOpen] = useState(() => !initialPrefs);
-            const [setupPrefs, setSetupPrefs] = useState<Preferences | null>(() => initialPrefs);
-          '''.replace('            ', '  ')
-
-          if 'const [initialPrefs] = useState(() => loadPrefs());' not in app_text:
-              if app_text.count(old_state) != 1:
-                  raise SystemExit(f'Expected exactly one initial state block, found {app_text.count(old_state)}')
-              app_text = app_text.replace(old_state, new_state, 1)
-
-          old_effect = '''  useEffect(() => {
-            if (didInitialize.current) return;
-            didInitialize.current = true;
-            const prefs = loadPrefs();
-            if (!prefs) {
-              setActiveSources([]);
-              setSetupPrefs(null);
-              setSetupOpen(true);
-            } else {
-              applyPrefs(prefs);
-              void loadFeed(false, prefs.sources);
-            }
-          }, [applyPrefs, loadFeed]);'''.replace('            ', '  ')
-
-          new_effect = '''  useEffect(() => {
-            if (didInitialize.current) return;
-            didInitialize.current = true;
-            if (initialPrefs?.sources.length) {
-              void loadFeed(false, initialPrefs.sources);
-            }
-          }, [initialPrefs, loadFeed]);'''.replace('            ', '  ')
+          for old, new, marker in replacements:
+              if marker not in app_text:
+                  if app_text.count(old) != 1:
+                      raise SystemExit(f'Expected exactly one occurrence for migration marker: {old!r}; found {app_text.count(old)}')
+                  app_text = app_text.replace(old, new, 1)
 
           if 'if (initialPrefs?.sources.length)' not in app_text:
-              if app_text.count(old_effect) != 1:
-                  raise SystemExit(f'Expected exactly one initialization effect, found {app_text.count(old_effect)}')
-              app_text = app_text.replace(old_effect, new_effect, 1)
+              pattern = re.compile(
+                  r"  useEffect\(\(\) => \{\n"
+                  r"    if \(didInitialize\.current\) return;\n"
+                  r"    didInitialize\.current = true;\n"
+                  r"    const prefs = loadPrefs\(\);\n"
+                  r"    if \(!prefs\) \{\n"
+                  r"      setActiveSources\(\[\]\);\n"
+                  r"      setSetupPrefs\(null\);\n"
+                  r"      setSetupOpen\(true\);\n"
+                  r"    \} else \{\n"
+                  r"      applyPrefs\(prefs\);\n"
+                  r"      void loadFeed\(false, prefs\.sources\);\n"
+                  r"    \}\n"
+                  r"  \}, \[applyPrefs, loadFeed\]\);"
+              )
+              replacement = (
+                  "  useEffect(() => {\n"
+                  "    if (didInitialize.current) return;\n"
+                  "    didInitialize.current = true;\n"
+                  "    if (initialPrefs?.sources.length) {\n"
+                  "      void loadFeed(false, initialPrefs.sources);\n"
+                  "    }\n"
+                  "  }, [initialPrefs, loadFeed]);"
+              )
+              app_text, count = pattern.subn(replacement, app_text, count=1)
+              if count != 1:
+                  raise SystemExit(f'Expected exactly one initialization effect, replaced {count}')
 
           app.write_text(app_text)
           PY

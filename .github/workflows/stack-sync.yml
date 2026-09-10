@@ -1,0 +1,98 @@
+name: Stack Sync
+
+on:
+  push:
+    branches:
+      - chore/standardize-stack
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stack-sync-ai-news
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: chore/standardize-stack
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - name: Activate Tailwind 4 without redesign
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          css = Path('src/style.css')
+          css_text = css.read_text()
+          tailwind_import = "@import 'tailwindcss';"
+          if tailwind_import not in css_text:
+              css.write_text(tailwind_import + "\n\n" + css_text)
+          elif css_text.count(tailwind_import) != 1:
+              raise SystemExit(f'Expected at most one Tailwind import, found {css_text.count(tailwind_import)}')
+
+          app = Path('src/App.tsx')
+          app_text = app.read_text()
+          old = 'className="app-shell"'
+          new = 'className="app-shell min-h-screen"'
+          if new not in app_text:
+              if app_text.count(old) != 1:
+                  raise SystemExit(f'Expected exactly one app shell class, found {app_text.count(old)}')
+              app.write_text(app_text.replace(old, new, 1))
+          PY
+
+      - name: Rebuild dependency lock from canonical manifest
+        run: |
+          rm -f package-lock.json
+          npm install --package-lock-only --legacy-peer-deps
+
+      - name: Install synchronized dependencies with strict peer resolution
+        run: npm ci
+
+      - name: Normalize canonical formatting
+        run: npm run format
+
+      - name: Verify formatting
+        run: npm run format:check
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Check types
+        run: npm run typecheck
+
+      - name: Run unit and component tests
+        run: npm test
+
+      - name: Build application
+        run: npm run build
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E
+        run: npm run test:e2e
+
+      - name: Commit validated migration artifacts
+        run: |
+          if git diff --quiet; then
+            echo "Migration artifacts already synchronized"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- package-lock.json src tests vite.config.ts vitest.config.ts playwright.config.ts eslint.config.js package.json
+          git commit -m "chore(stack): apply validated canonical stack migration"
+          git push origin HEAD:chore/standardize-stack

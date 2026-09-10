@@ -8,7 +8,7 @@ AI News Aggregator runs in the browser with React, TypeScript, and Vite. Source 
 
 - [AI News Aggregator](https://ainews.leonemarcos.com/): Live application.
 - [Repository](https://github.com/LeoneMarcos/AI-News-Aggregator): Source code, documentation, tests, and deployment configuration.
-- [Showcase video](https://github.com/user-attachments/assets/4dfd7103-3ed0-4a76-9cd0-7a028ec64a1f): Product walkthrough.
+- [Showcase video](https://raw.githubusercontent.com/LeoneMarcos/AI-News-Aggregator/main/showcase-assets/ai-news-aggregator-showcase.mp4): Canonical product walkthrough reused across public presentation surfaces.
 
 ## Technology
 

@@ -115,10 +115,10 @@ Browser
 | Area | Technologies |
 | --- | --- |
 | Frontend | React 19, TypeScript |
-| UI | Lucide React, Google Fonts |
+| UI & Styling | Tailwind CSS 4, Lucide React, Google Fonts |
 | Data | RSS feeds, client-side XML parsing, CORS proxy fallbacks |
 | Build | Vite 7 |
-| Testing | Vitest 4, jsdom |
+| Testing | Vitest 4, jsdom, Playwright |
 | CI | GitHub Actions |
 | Hosting | Cloudflare Pages |
 
@@ -185,11 +185,8 @@ The Vitest suite covers feed parsing, proxy fallback behavior, cache handling, u
 
 ## Documentation
 
-- [`ARCHITECTURE.md`](ARCHITECTURE.md) — Architecture and module flow.
 - [`DESIGN.md`](DESIGN.md) — Visual design tokens, layout hierarchy, and accessibility rules.
-- [`PRODUCT.md`](PRODUCT.md) — Functional requirements and acceptance criteria.
 - [`STACK.md`](STACK.md) — Technology stack constraints and rules.
-- [`TEST_PLAN.md`](TEST_PLAN.md) — Verification strategy and automated test coverage.
 - [`docs/STATUS.md`](docs/STATUS.md) — Status log and release evidence.
 
 ---

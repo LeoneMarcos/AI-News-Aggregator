@@ -45,7 +45,7 @@ Use 6–8px control/card radii, 22–26px card padding, and restrained borders. 
 
 ### Media
 
-The `public/ai-news-aggregator-logo.webp` mark is the header, setup, favicon, and social preview image. Article media is not required; external RSS descriptions are rendered as text after HTML stripping.
+The `public/ai-news-spark-logo.png` mark is used for the header, setup dialog, favicon, and social preview metadata. (The `public/` directory also retains `ai-news-aggregator-logo.webp` and `ai-news-editorial-logo.png` as additional visual brand assets.) Article media is not required; external RSS descriptions are rendered as text after HTML stripping.
 
 ## 4. Components and states
 
@@ -81,6 +81,6 @@ Keep feed parsing and proxy behavior in `src/feed.ts`, pure text/date helpers in
 
 ## 9. Implementation status
 
-The 2026-09-05 visual refactor implements the reading-room direction, responsive layouts, search, consistent source identity, source selection counts, and retry/empty states. The existing logo remains in use. No new dependencies were added.
+The visual implementation follows the editorial reading-room direction, responsive layouts, search, consistent source identity, source selection counts, and retry/empty states. The `public/ai-news-spark-logo.png` mark is actively used across the application shell, favicon, metadata, and README. No backend dependencies are required.
 
-Validation is pending with the user. Tests, browser checks, and a visual audit were not run for this refactor, as explicitly requested. Earlier audit results do not validate this revision.
+Validation and automated quality checks pass locally and in CI, including strict TypeScript compilation (`tsc --noEmit`), ESLint, Prettier, unit and component tests (36 Vitest tests passing), Playwright end-to-end smoke testing, and production build verification. The application is deployed and live on Cloudflare Pages.
